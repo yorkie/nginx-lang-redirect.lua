@@ -36,7 +36,7 @@ local lang_corrects = { us = "en",
                         fr = "fr" }
 
 local has_lang_at_uri, _ = ngx.re.match(ngx.var.uri, "^/(en|cn|fr)", "i")
-if (has_lang_at_uri) then
+if ( has_lang_at_uri ) then
     ngx.req.set_uri(parsed_uri)
     return
 end

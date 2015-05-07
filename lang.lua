@@ -51,7 +51,8 @@ end
 
 local cleaned = ngx.re.sub(lang_header, "^.*:", "")
 local options = {}
-local iterator, err = ngx.re.gmatch(cleaned, "\\s*([a-z]+(?:-[a-z])*)\\s*(?:;q=([0-9]+(.[0-9]*)?))?\\s*(,|$)", "i")
+local re_lang = "\\s*([a-z]+(?:-[a-z])*)\\s*(?:;q=([0-9]+(.[0-9]*)?))?\\s*(,|$)"
+local iterator, err = ngx.re.gmatch(cleaned, re_lang, "i")
 for m, err in iterator do
   local lang = lang_corrects[m[1]:lower()]
   local priority = 1

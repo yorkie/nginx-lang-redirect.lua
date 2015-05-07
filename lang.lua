@@ -63,11 +63,13 @@ end
 
 table.sort(options, function(a,b) return b[2] < a[2] end)
 
+local redirected = false
 for index, lang in pairs(options) do
     ngx.redirect( lang[1] .. parsed_uri )
+    redirected = true
     break
 end
 if not redirected then
-    ngx.req.set_uri(parsed_uri)
+    ngx.redirect( default_lang:lower() .. parsed_uri )
     return
 end

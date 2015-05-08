@@ -34,21 +34,44 @@ local lang_corrects = { us = "en",
                         cn = "zh",
                         zh = "zh" }
 
-local m_uri, _ = ngx.re.match(ngx.var.uri, "(en|zh)(.*)", "")
+local m_uri, _ = ngx.re.match(ngx.var.uri, "^/(en|zh|cn)(/?)(.*)", "i")
 if m_uri then
-  if m_uri[1] == default_lang then
-    ngx.req.set_uri("/" .. m_uri[2])
-  else
-    ngx.req.set_uri("/en/" .. m_uri[2])
+  local lang = lang_corrects[m_uri[1]]
+  local has_slash = m_uri[2] == ""
+  local real_path = m_uri[3]
+
+  -- redirect rule:
+  -- /en -> /en/
+  -- /zh -> /zh/
+  if has_slash then
+    ngx.redirect(lang .. "/")
+    return
   end
+
+  if lang == default_lang then
+    ngx.req.set_uri("/" .. real_path)
+  else
+    ngx.req.set_uri("/en/" .. real_path)
+  end
+
   -- direct return if check /(en|zh)/..
   return
 end
 
+-- no Accept-Languages field
 if lang_header == nil then
+  ngx.req.set_uri(ngx.var.uri)
   return
 end
 
+-- check if the request is requesting a resource(js/css/image)
+local m_uri_is_resource, _ = ngx.re.match(ngx.var.uri, "\\.(js|css|png|jpg)", "i")
+if m_uri_is_resource then
+  ngx.req.set_uri(ngx.var.uri)
+  return
+end
+
+-- check Accept-Languages
 local cleaned = ngx.re.sub(lang_header, "^.*:", "")
 local options = {}
 local re_lang = "\\s*([a-z]+(?:-[a-z])*)\\s*(?:;q=([0-9]+(.[0-9]*)?))?\\s*(,|$)"
@@ -67,7 +90,14 @@ table.sort(options, function(a,b) return b[2] < a[2] end)
 
 for index, lang in pairs(options) do
   if lang[1]:lower() ~= default_lang then
-    ngx.req.set_uri("/en/" .. parsed_uri)
+    if parsed_uri == "/" then
+      ngx.redirect("/en/")
+    else
+      ngx.redirect("/en/" .. parsed_uri)
+    end
+    break
+  else
+    ngx.req.set_uri("/" .. parsed_uri)
     break
   end
 end

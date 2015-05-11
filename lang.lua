@@ -65,7 +65,7 @@ if lang_header == nil then
 end
 
 -- check if the request is requesting a resource(js/css/image)
-local m_uri_is_resource, _ = ngx.re.match(ngx.var.uri, "\\.(js|css|png|jpg)", "i")
+local m_uri_is_resource, _ = ngx.re.match(ngx.var.uri, "\\.(js|css|png|jpg|ico|svg)", "i")
 if m_uri_is_resource then
   ngx.req.set_uri(ngx.var.uri)
   return
